@@ -39,6 +39,15 @@ public class App {
         }
         return x;
     }
+    public static float randomGauss(float mean, float stddev) {
+        return (float)(ThreadLocalRandom.current().nextGaussian() * stddev + mean);
+    }
+    public static float randomGauss(float min, float max, float mean, float stddev) {
+        return App.constrain(App.randomGauss(mean, stddev), min, max);
+    }
+    public static float randomGauss(float min, float max, float stddev) {
+        return App.randomGauss(min, max, min * 0.5f + max * 0.5f, stddev);
+    }
 }
 
 class Energy {
@@ -67,11 +76,64 @@ class Child {
 
 class NeuralNetwork {
     ArrayList<float[][]> weights;
-    int numOfLayers;
-    public NeuralNetwork(int minNumOfLayers, int maxNumOfLayers, int meanNumOfLayers, int stdDevNumOfLayers, int minNumOfNeurons, int maxNumOfNeurons, int meanNumOfNeurons, int stdDevNumOfNeurons, int numOfInputs, int numOfOutputs) {
-        numOfLayers = (int)App.constrain((float)(ThreadLocalRandom.current().nextGaussian() * stdDevNumOfLayers + minNumOfLayers * 0.5 + maxNumOfLayers * 0.5), minNumOfLayers, maxNumOfLayers);
-        for (int i = 0; i < numOfLayers; i++) {
+    public static int maxLayers = 10;
 
+    public NeuralNetwork(int minNumOfLayers, int maxNumOfLayers, int meanNumOfLayers, float stdDevNumOfLayers, int minNumOfNeurons, int maxNumOfNeurons, int meanNumOfNeurons, int stdDevNumOfNeurons, int numOfInputs, int numOfOutputs) {
+        int numOfLayers = (int)App.randomGauss((float)minNumOfLayers, (float)maxNumOfLayers, stdDevNumOfLayers);
+        int x = numOfInputs;
+        for (int i = 0; i < numOfLayers; i++) {
+            int y;
+            if (i == (numOfLayers - 1)) {
+                y = numOfOutputs;
+            } else {
+                y = (int)App.randomGauss(minNumOfNeurons, maxNumOfNeurons, stdDevNumOfNeurons);
+            }
+            float[][] layer = new float[y][x];
+            for (int j = 0; j < y; j++) {
+                for (int k = 0; k < x; k++) {
+                    layer[j][k] = App.randomGauss(0, 1);
+                }
+            }
+            weights.add(layer);
         }
+    }
+    public ArrayList<float[][]> getWeights() {
+        return weights;
+    }
+    public NeuralNetwork(NeuralNetwork a, NeuralNetwork b) {
+        ArrayList<float[][]> preferredWeights;
+        ArrayList<float[][]> secondaryWeights;
+        if (ThreadLocalRandom.current().nextBoolean()) {
+            preferredWeights = a.getWeights();
+            secondaryWeights = b.getWeights();
+        } else {
+            preferredWeights = b.getWeights();
+            secondaryWeights = a.getWeights();
+        }
+        int min, max;
+        if (preferredWeights < 4) {
+            min = 3;
+        } else
+        int numOfLayers = App.randomGauss(min, max, mean, stddev)
+    }
+    public float[] step(float[] inputs) {
+        float[] x = inputs;
+        float[] y;
+        for (int i = 0; i < weights.size(); i++) {
+            float[][] layer = weights.get(i);
+            y = new float[layer.length];
+            for (int j = 0; j < layer.length; j++) {
+                for (int k = 0; k < layer[j].length; k++) {
+                    y[j] += x[k] * layer[j][k];
+                }
+                if (i == (weights.size() - 1)) {
+                    y[j] = 1 / ( 1 + (float)Math.exp(-y[j]));
+                } else if (y[j] < 0) {
+                    y[j] = 0;
+                }
+            }
+            x = y;
+        }
+        return x;
     }
 }
