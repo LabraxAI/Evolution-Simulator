@@ -100,7 +100,7 @@ class NeuralNetwork {
     public ArrayList<float[][]> getWeights() {
         return weights;
     }
-    public NeuralNetwork(NeuralNetwork a, NeuralNetwork b) {
+    public NeuralNetwork(NeuralNetwork a, NeuralNetwork b, float stddev) {
         ArrayList<float[][]> preferredWeights;
         ArrayList<float[][]> secondaryWeights;
         if (ThreadLocalRandom.current().nextBoolean()) {
@@ -111,10 +111,21 @@ class NeuralNetwork {
             secondaryWeights = a.getWeights();
         }
         int min, max;
-        if (preferredWeights < 4) {
-            min = 3;
-        } else
-        int numOfLayers = App.randomGauss(min, max, mean, stddev)
+        if (preferredWeights.size() < 4) {
+            min = 2;
+        } else {
+            min = preferredWeights.size() - 2;
+        }
+        if (preferredWeights.size() > maxLayers - 3) {
+            max = maxLayers;
+        } else {
+            max = preferredWeights.size() + 3;
+        }
+        int numOfLayers = (int)App.randomGauss(min, max, preferredWeights.size(), stddev);
+        in
+        for (int i = 0; i < numOfLayers; i++) {
+            
+        }
     }
     public float[] step(float[] inputs) {
         float[] x = inputs;
